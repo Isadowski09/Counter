@@ -26,9 +26,14 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install System Dependencies
+    # This step explicitly resolves the conflicting libunwind dependency first
+    - name: Fix Broken APT Dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install -y --allow-downgrades libunwind-dev
+
+    - name: Install System Dependencies
+      run: |
         sudo apt-get install -y \
           build-essential \
           git \
@@ -59,7 +64,6 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install --user Cython virtualenv buildozer
-        # Ensures buildozer CLI is globally accessible in the runner path
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Build APK with Buildozer
@@ -67,7 +71,6 @@ jobs:
         buildozer android debug
       env:
         ACCEPT_SDK_LICENSE: "y"
-        # Points Buildozer directly to the correct Java location
         JAVA_HOME: ${{ env.JAVA_HOME }}
 
     - name: Upload APK Artifact
