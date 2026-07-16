@@ -9,57 +9,19 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    # Uses a pre-built docker container containing all Buildozer + Android SDK/NDK tools
+    - name: Build APK with Buildozer Action
+      uses: ArtemSBulgakov/buildozer-action@v3
       with:
-        python-style: '3.11'
-
-    - name: Install System Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          git \
-          ffmpeg \
-          libsdl2-dev \
-          libsdl2-image-dev \
-          libsdl2-mixer-dev \
-          libsdl2-ttf-dev \
-          libportmidi-dev \
-          libswscale-dev \
-          libavformat-dev \
-          libavcodec-dev \
-          zlib1g-dev \
-          libgstreamer1.0-dev \
-          gstreamer1.0-plugins-base \
-          gstreamer1.0-plugins-good \
-          libffi-dev \
-          libssl-dev \
-          libtinfo5 \
-          unzip \
-          zip \
-          libtool \
-          pkg-config \
-          cmake \
-          openjdk-17-jdk
-
-    - name: Install Python Build Tools
-      run: |
-        pip install --upgrade pip
-        pip install Cython virtualenv buildozer
-
-    - name: Build APK with Buildozer
-      run: |
-        buildozer android debug
-      env:
-        # Accepts SDK licenses automatically during build
-        ACCEPT_SDK_LICENSE: "y"
+        buildozer_version: stable
+        command: buildozer android debug
+        repository_root: .
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
