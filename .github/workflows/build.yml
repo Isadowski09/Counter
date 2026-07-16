@@ -21,10 +21,6 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    # Automatically loads a modern, functional Android SDK environment
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -61,7 +57,8 @@ jobs:
           libtool \
           pkg-config \
           cmake \
-          ccache
+          ccache \
+          aidl
 
     - name: Install Python Build Tools
       run: |
@@ -69,18 +66,22 @@ jobs:
         pip install --user Cython virtualenv buildozer
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+    # Creates and populates Buildozer's exact target license folder ahead of time
+    - name: Pre-seed Buildozer Android SDK Licenses
+      run: |
+        mkdir -p /home/runner/.buildozer/android/platform/android-sdk/licenses
+        echo -e "89354db23b24ba1175f024e508ba5692be4e03a0\nd56f5187479451eabf01fb74bf367004a4b46311\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n351336901d6efe34e02b7f52dbb1303cc17f1a16" > /home/runner/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo -e "84831b9409646a918e30573bab4c9c91346d8abd" > /home/runner/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+
     - name: Build APK with Buildozer
       run: |
-        # Point Buildozer directly to the runner's pre-configured Android SDK
         buildozer android debug
       env:
         ACCEPT_SDK_LICENSE: "y"
         JAVA_HOME: ${{ env.JAVA_HOME }}
-        ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: android-apk
         path: bin/*.apk
-        
