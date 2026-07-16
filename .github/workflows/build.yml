@@ -15,9 +15,9 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    # Uses a pre-built docker container containing all Buildozer + Android SDK/NDK tools
+    # Uses the valid, stable v1 container tag 
     - name: Build APK with Buildozer Action
-      uses: ArtemSBulgakov/buildozer-action@v3
+      uses: ArtemSBulgakov/buildozer-action@v1
       with:
         buildozer_version: stable
         command: buildozer android debug
