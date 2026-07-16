@@ -26,9 +26,13 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install System Dependencies
+    - name: Resolve System Dependency Conflicts
       run: |
         sudo apt-get update
+        # Crucial Fix: Removes conflicting LLVM/Clang unwind packages blocking GStreamer
+        sudo apt-get remove -y libunwind-*
+        
+        # Install clean system dependencies required by Kivy / Buildozer
         sudo apt-get install -y \
           build-essential \
           git \
@@ -64,23 +68,22 @@ jobs:
 
     - name: Link GitHub's Android SDK to Buildozer
       run: |
-        # Create Buildozer's target directory layout
+        # Setup Buildozer folder blueprint mapping
         mkdir -p $HOME/.buildozer/android/platform
         
-        # Link GitHub's pre-installed, valid Android SDK directly into Buildozer
+        # Re-route Buildozer away from downloading a broken SDK zip
         ln -s $ANDROID_HOME $HOME/.buildozer/android/platform/android-sdk
         
-        # Absolute fix for your original 'tools/bin/sdkmanager does not exist' crash
-        # This links the modern cmdline-tools manager right into the old legacy path Buildozer checks
+        # Maps the runner's modern cmdline-tools path to legacy paths Buildozer looks for
         mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
         ln -s $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
         
-        # Accept all SDK licenses automatically
+        # Auto-sign and bypass interactive Android legal agreements
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
     - name: Build Debug APK with Buildozer
       run: |
-        # Use debug mode so the APK can be immediately installed on your phone
+        # Packages your Start/Stop GUI app into an installation-ready debug binary
         buildozer android debug
 
     - name: Upload APK Artifact
