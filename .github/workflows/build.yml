@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout code
@@ -18,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-path: '3.11'
+        python-version: '3.11'
 
     - name: Set up Java Development Kit (JDK 17)
       uses: actions/setup-java@v4
@@ -62,31 +62,26 @@ jobs:
         pip install --upgrade pip
         pip install "buildozer>=1.5.0" cython
 
-    - name: Bootstrap Android SDK and Command-line Tools
+    - name: Link GitHub's Android SDK to Buildozer
       run: |
-        # Create the structural directory path buildozer targets
-        SDK_DIR="$HOME/.buildozer/android/platform/android-sdk"
-        mkdir -p "$SDK_DIR/cmdline-tools"
+        # Create Buildozer's target directory layout
+        mkdir -p $HOME/.buildozer/android/platform
         
-        # Download official Google cmdline-tools
-        curl -o cmdline-tools.zip https://google.com
-        unzip -q cmdline-tools.zip -d "$SDK_DIR/cmdline-tools"
-        rm cmdline-tools.zip
+        # Link GitHub's pre-installed, valid Android SDK directly into Buildozer
+        ln -s $ANDROID_HOME $HOME/.buildozer/android/platform/android-sdk
         
-        # Buildozer compatibility fix: rename extracted 'cmdline-tools' folder to 'latest'
-        mv "$SDK_DIR/cmdline-tools/cmdline-tools" "$SDK_DIR/cmdline-tools/latest"
+        # Absolute fix for your original 'tools/bin/sdkmanager does not exist' crash
+        # This links the modern cmdline-tools manager right into the old legacy path Buildozer checks
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
+        ln -s $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
         
-        # Explicit legacy fallback fix to completely eliminate your exact sdkmanager crash
-        mkdir -p "$SDK_DIR/tools/bin"
-        ln -s "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" "$SDK_DIR/tools/bin/sdkmanager"
-        
-        # Accept licenses automatically
-        yes | "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" --licenses
+        # Accept all SDK licenses automatically
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
-    - name: Build with Buildozer
+    - name: Build Debug APK with Buildozer
       run: |
-        buildozer android release
-        # Or use 'buildozer android debug' depending on your signing workflow
+        # Use debug mode so the APK can be immediately installed on your phone
+        buildozer android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
