@@ -9,19 +9,61 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    # Uses the valid, stable v1 container tag 
-    - name: Build APK with Buildozer Action
-      uses: ArtemSBulgakov/buildozer-action@v1
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
       with:
-        buildozer_version: stable
-        command: buildozer android debug
-        repository_root: .
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install System Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          ffmpeg \
+          libsdl2-dev \
+          libsdl2-image-dev \
+          libsdl2-mixer-dev \
+          libsdl2-ttf-dev \
+          libportmidi-dev \
+          libswscale-dev \
+          libavformat-dev \
+          libavcodec-dev \
+          zlib1g-dev \
+          libgstreamer1.0-dev \
+          gstreamer1.0-plugins-base \
+          gstreamer1.0-plugins-good \
+          libffi-dev \
+          libssl-dev \
+          libtinfo5 \
+          unzip \
+          zip \
+          libtool \
+          pkg-config \
+          cmake
+
+    - name: Install Python Build Tools
+      run: |
+        pip install --upgrade pip
+        pip install Cython virtualenv buildozer
+
+    - name: Build APK with Buildozer
+      run: |
+        buildozer android debug
+      env:
+        ACCEPT_SDK_LICENSE: "y"
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
