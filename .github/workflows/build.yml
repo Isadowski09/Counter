@@ -11,7 +11,8 @@ jobs:
         uses: digreatbrian/buildozer-action@v2
         with:
           python-version: 3.9
-          buildozer-cmd: buildozer android debug
+          # Added -v to print detailed logs and keep the server from timing out
+          buildozer-cmd: buildozer -v android debug
 
       - name: Upload APK Download Link
         uses: actions/upload-artifact@v4
