@@ -30,8 +30,11 @@ fullscreen = 1
 
 
 # =============================================================================
-# Android specific variables (UPDATED COMPATIBILITY CONFIG)
+# Android specific variables (AUTOMATION & STABILITY OVERRIDES)
 # =============================================================================
+
+# (bool) Automatically accept SDK license agreements in CI/headless environments
+android.accept_sdk_license = True
 
 # (num) Android API to use (Target Android 14 / API 34)
 android.api = 34
@@ -39,10 +42,10 @@ android.api = 34
 # (num) Minimum API required (Supports Android 5.0 and up)
 android.minapi = 21
 
-# (str) Android NDK version to use (UPDATED FOR LATEST P4A CORE)
+# (str) Android NDK version to use (Matches python-for-android core recommendations)
 android.ndk = 28c
 
-# (str) Android SDK Build Tools version
+# (str) Android SDK Build Tools version (Locks version to bypass v37 error bugs)
 android.sdk_build_tools_version = 34.0.0
 
 # (bool) Use gradle instead of ant
